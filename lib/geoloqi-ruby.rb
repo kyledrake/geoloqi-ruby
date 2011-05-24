@@ -22,7 +22,7 @@ module Geoloqi
 
   def self.enable_logging(val=nil)
     return @@enable_logging if val.nil?
-    raise ArgumentError, 'Geoloqi.enable_logging must be boolean' unless [TrueClass, FalseClass].include? true.class
+    raise ArgumentError, 'Geoloqi.enable_logging must be boolean' unless [true, false].include? val
     @@enable_logging = val
   end
 

@@ -54,9 +54,9 @@ module Geoloqi
       req.body = body if body
     end
 
-    response_json = JSON.parse response.body
-    raise Error.new(response_json['error'], response_json['error_description']) if response_json.is_a?(Hash) && response_json['error']
-    response_json
+    json = JSON.parse response.body
+    raise Error.new(json['error'], json['error_description']) if json.is_a?(Hash) && json['error']
+    json
   end
 
   def self.get_token(auth_code, redirect_uri)

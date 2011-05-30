@@ -12,7 +12,7 @@ describe Geoloqi do
     Geoloqi.config :client_id => 'client_id', :client_secret => 'client_secret'
     expect { Geoloqi.config.is_a?(Geoloqi::Config) }
   end
-  
+
   it 'returns authorize url' do
     authorize_url = Geoloqi.authorize_url 'test', 'http://blah.blah/test'
     expect { authorize_url == "#{Geoloqi::API_URL}/oauth/authorize?"+
@@ -26,7 +26,7 @@ describe Geoloqi::Config do
   it 'throws exception if non-boolean value is fed to logging' do
     expect { rescuing { Geoloqi.config(:client_id => '', :client_secret => '', :enable_logging => :cats )}.class == ArgumentError }
   end
-  
+
   it 'correctly checks booleans for client_id and client_secret' do
     [:client_id, :client_secret].each do |k|
       expect { Geoloqi.config(k => '').send("#{k}?") == false }
@@ -37,11 +37,22 @@ describe Geoloqi::Config do
 end
 
 describe Geoloqi::Session do
-  describe 'with no config' do
+
+  describe 'with nothing passed' do
+    before do
+      @session = Geoloqi::Session.new
+    end
+
+    it 'should not find oauth token' do
+      expect { !@session.oauth_token? }
+    end
+  end
+
+  describe 'with oauth token and no config' do
     before do
       @session = Geoloqi::Session.new :oauth_token => ARGV[2]
     end
-    
+
     it 'successfully makes call to api with forward slash' do
       response = @session.get '/layer/info/Gx'
       expect { response['layer_id'] == 'Gx' }
@@ -51,11 +62,22 @@ describe Geoloqi::Session do
       response = @session.get '/layer/info/Gx'
       expect { response['layer_id'] == 'Gx' }
     end
+
+    it 'creates a layer, reads its info, and then deletes the layer' do
+      layer_id = @session.post('/layer/create', :name => 'Test Layer')['layer_id']
+      layer_info = @session.get "/layer/info/#{layer_id}"
+      layer_delete = @session.post "/layer/delete/#{layer_id}"
+
+      expect { layer_id.is_a?(String) }
+      expect { !layer_id.empty? }
+      expect { layer_info['name'] == 'Test Layer' }
+      expect { layer_delete['result'] == 'ok' }
+    end
   end
 
   describe 'with oauth id, secret, and oauth token via Geoloqi::Config' do
     it 'should load config' do
-      @session = Geoloqi::Session.new :oauth_token => ARGV[2], :config => Geoloqi::Config.new(:client_id => ARGV[0], 
+      @session = Geoloqi::Session.new :oauth_token => ARGV[2], :config => Geoloqi::Config.new(:client_id => ARGV[0],
                                                                                               :client_secret => ARGV[1])
       expect { @session.config.client_id == ARGV[0] }
       expect { @session.config.client_secret == ARGV[1] }
@@ -69,12 +91,16 @@ describe Geoloqi::Session do
       expect { response['layer_id'] == 'Gx' }
     end
   end
-  
-  describe 'with oauth id, secret, and oauth token via direct hash' do
+
+  describe 'with client id, client secret, and oauth token via direct hash' do
     before do
       @session = Geoloqi::Session.new :oauth_token => ARGV[2], :config => {:client_id => ARGV[0], :client_secret => ARGV[1]}
     end
-    
+
+    it 'should recognize oauth token exists' do
+      expect { @session.oauth_token? }
+    end
+
     it 'gets authorize url' do
       authorize_url = @session.authorize_url('http://blah.blah/test')
       expect { authorize_url == "#{Geoloqi::API_URL}/oauth/authorize?"+
@@ -83,5 +109,5 @@ describe Geoloqi::Session do
                                 "redirect_uri=#{Rack::Utils.escape 'http://blah.blah/test'}" }
     end
   end
-  
+
 end

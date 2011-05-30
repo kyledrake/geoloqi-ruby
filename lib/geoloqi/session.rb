@@ -11,6 +11,10 @@ module Geoloqi
       end
     end
 
+    def oauth_token?
+      !@oauth_token.nil?
+    end
+
     def authorize_url(redirect_uri)
       Geoloqi.authorize_url @config.client_id, redirect_uri
     end

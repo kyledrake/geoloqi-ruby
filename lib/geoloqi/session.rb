@@ -6,7 +6,6 @@ module Geoloqi
       @config = opts[:config] || (Geoloqi.config || Geoloqi::Config.new)
       @oauth_token = opts[:oauth_token]
       @connection = Faraday.new(:url => API_URL) do |builder|
-        builder.request  :json
         builder.response :logger if @config.enable_logging
         builder.adapter  @config.adapter || :net_http
       end
@@ -26,7 +25,7 @@ module Geoloqi
 
     def run(meth, path, body=nil)
       args = {:head => headers}
-      args[:body] = body.to_json if body
+      body = body.to_json if body.is_a? Hash
 
       response = @connection.send(meth) do |req|
         req.url "/#{VERSION.to_s}/#{path.gsub(/^\//, '')}"

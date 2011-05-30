@@ -11,11 +11,11 @@ module Geoloqi
         builder.adapter  @config.adapter || :net_http
       end
     end
-  
+
     def authorize_url(redirect_uri)
       Geoloqi.authorize_url @config.client_id, redirect_uri
     end
-  
+
     def get(path)
       run :get, path
     end

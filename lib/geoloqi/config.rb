@@ -6,11 +6,11 @@ module Geoloqi
       self.enable_logging ||= false
       raise ArgumentError, 'enable_logging must be boolean' unless [true, false].include? self.enable_logging
     end
-  
+
     def client_id?
       !client_id.nil? && !client_id.empty?
     end
-  
+
     def client_secret?
       !client_secret.nil? && !client_secret.empty?
     end

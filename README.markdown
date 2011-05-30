@@ -11,7 +11,7 @@ Installation
 
 Basic Usage
 ---
-Geoloqi uses OAuth2 for authentication, but if you're only working with your own account, you don't need to go through the authorization steps! Simply go to your account settings, click on "Connections" and copy the OAuth 2 Access Token. You can use this token to run the following examples:
+Geoloqi uses OAuth2 for authentication, but if you're only working with your own account, you don't need to go through the authorization steps! Simply go to your account settings on the [Geoloqi site](http://geoloqi.com), click on "Connections" and copy the OAuth 2 Access Token. You can use this token to run the following examples:
 
 	require 'geoloqi'
 	geoloqi = Geoloqi::Session.new :oauth_token => 'YOUR OAUTH2 TOKEN GOES HERE'

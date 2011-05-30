@@ -19,7 +19,7 @@ module Geoloqi
       run :get, path
     end
 
-    def post(path, body)
+    def post(path, body=nil)
       run :post, path, body
     end
 

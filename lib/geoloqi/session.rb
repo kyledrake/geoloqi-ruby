@@ -2,7 +2,7 @@ module Geoloqi
   class Session
     attr_reader :auth
     attr_accessor :config
-    
+
     def initialize(opts={})
       opts[:config] = Geoloqi::Config.new opts[:config] if opts[:config].is_a? Hash
       @config = opts[:config] || (Geoloqi.config || Geoloqi::Config.new)
@@ -21,7 +21,7 @@ module Geoloqi
     def access_token
       @auth[:access_token]
     end
-    
+
     def access_token?
       !access_token.nil?
     end

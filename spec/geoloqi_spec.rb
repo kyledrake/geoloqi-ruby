@@ -1,4 +1,4 @@
-raise ArgumentError, 'usage: be ruby spec/geoloqi_spec.rb "client_id" "client_secret" "oauth_token"' unless ARGV.length == 3
+raise ArgumentError, 'usage: be ruby spec/geoloqi_spec.rb "client_id" "client_secret" "access_token"' unless ARGV.length == 3
 Bundler.setup
 require 'geoloqi'
 require 'minitest/autorun'
@@ -15,7 +15,7 @@ describe Geoloqi do
 
   it 'returns authorize url' do
     authorize_url = Geoloqi.authorize_url 'test', 'http://blah.blah/test'
-    expect { authorize_url == "#{Geoloqi::API_URL}/oauth/authorize?"+
+    expect { authorize_url == "#{Geoloqi::OAUTH_URL}?"+
                               'response_type=code&'+
                               "client_id=#{Rack::Utils.escape 'test'}&"+
                               "redirect_uri=#{Rack::Utils.escape 'http://blah.blah/test'}" }
@@ -43,14 +43,14 @@ describe Geoloqi::Session do
       @session = Geoloqi::Session.new
     end
 
-    it 'should not find oauth token' do
-      expect { !@session.oauth_token? }
+    it 'should not find access token' do
+      expect { !@session.access_token? }
     end
   end
 
-  describe 'with oauth token and no config' do
+  describe 'with access token and no config' do
     before do
-      @session = Geoloqi::Session.new :oauth_token => ARGV[2]
+      @session = Geoloqi::Session.new :access_token => ARGV[2]
     end
 
     it 'successfully makes call to api with forward slash' do
@@ -75,39 +75,42 @@ describe Geoloqi::Session do
     end
   end
 
-  describe 'with oauth id, secret, and oauth token via Geoloqi::Config' do
+  describe 'with oauth id, secret, and access token via Geoloqi::Config' do
     it 'should load config' do
-      @session = Geoloqi::Session.new :oauth_token => ARGV[2], :config => Geoloqi::Config.new(:client_id => ARGV[0],
-                                                                                              :client_secret => ARGV[1])
+      @session = Geoloqi::Session.new :access_token => ARGV[2], :config => Geoloqi::Config.new(:client_id => ARGV[0],
+                                                                                               :client_secret => ARGV[1])
       expect { @session.config.client_id == ARGV[0] }
       expect { @session.config.client_secret == ARGV[1] }
     end
   end
 
-  describe 'with em synchrony adapter and oauth_token' do
+  describe 'with em synchrony adapter and access token' do
     it 'makes call to api' do
-      session = Geoloqi::Session.new :oauth_token => ARGV[2], :config => {:adapter => :em_synchrony}
+      session = Geoloqi::Session.new :access_token => ARGV[2], :config => {:adapter => :em_synchrony}
       response = session.get 'layer/info/Gx'
       expect { response['layer_id'] == 'Gx' }
     end
   end
 
-  describe 'with client id, client secret, and oauth token via direct hash' do
+  describe 'with client id, client secret, and access token via direct hash' do
     before do
-      @session = Geoloqi::Session.new :oauth_token => ARGV[2], :config => {:client_id => ARGV[0], :client_secret => ARGV[1]}
+      @session = Geoloqi::Session.new :access_token => ARGV[2], :config => {:client_id => ARGV[0], :client_secret => ARGV[1]}
     end
 
-    it 'should recognize oauth token exists' do
-      expect { @session.oauth_token? }
+    it 'should return access token' do
+      expect { @session.access_token == ARGV[2] }
+    end
+
+    it 'should recognize access token exists' do
+      expect { @session.access_token? }
     end
 
     it 'gets authorize url' do
       authorize_url = @session.authorize_url('http://blah.blah/test')
-      expect { authorize_url == "#{Geoloqi::API_URL}/oauth/authorize?"+
+      expect { authorize_url == "#{Geoloqi::OAUTH_URL}?"+
                                 "response_type=code&"+
                                 "client_id=#{Rack::Utils.escape ARGV[0]}&"+
                                 "redirect_uri=#{Rack::Utils.escape 'http://blah.blah/test'}" }
     end
   end
-
 end

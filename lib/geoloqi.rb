@@ -8,6 +8,7 @@ require 'geoloqi/session'
 module Geoloqi
   VERSION = 1
   API_URL = 'https://api.geoloqi.com'
+  OAUTH_URL = 'https://beta.geoloqi.com/oauth/authorize'
   @@adapter = :net_http
   @@enable_logging = false
   @@config = nil
@@ -17,8 +18,8 @@ module Geoloqi
     @@config = Config.new opts
   end
 
-  def self.authorize_url(client_id=nil, redirect_uri=nil)
-    raise "client_id and redirect_uri required to authorize url. Pass with Geoloqi.config" unless client_id && redirect_uri
-    "#{API_URL}/oauth/authorize?response_type=code&client_id=#{Rack::Utils.escape client_id}&redirect_uri=#{Rack::Utils.escape redirect_uri}"
+  def self.authorize_url(client_id=nil, redirect_uri)
+    raise "client_id required to authorize url. Pass with Geoloqi.config" unless client_id
+    "#{OAUTH_URL}?response_type=code&client_id=#{Rack::Utils.escape client_id}&redirect_uri=#{Rack::Utils.escape redirect_uri}"
   end
 end

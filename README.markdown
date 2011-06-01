@@ -14,7 +14,7 @@ Basic Usage
 Geoloqi uses OAuth2 for authentication, but if you're only working with your own account, you don't need to go through the authorization steps! Simply go to your account settings on the [Geoloqi site](http://geoloqi.com), click on "Connections" and copy the OAuth 2 Access Token. You can use this token to run the following examples:
 
 	require 'geoloqi'
-	geoloqi = Geoloqi::Session.new :oauth_token => 'YOUR OAUTH2 TOKEN GOES HERE'
+	geoloqi = Geoloqi::Session.new :access_token => 'YOUR OAUTH2 ACCESS TOKEN GOES HERE'
 	response = geoloqi.get 'layer/info/Gx'
 	puts response.inspect
 
@@ -44,3 +44,32 @@ This returns response['place_id'], which you can use to store and/or remove the 
 	response = geoloqi.post "place/delete/#{response['place_id']}"
 
 Which returns response['result'] with a value of "ok".
+
+Implementing OAuth2
+---
+
+OAuth2 has been implemented so that it's very easy to store the session's authorization data in a hash. If the access token expires or becomes invalid, the refresh token is used to retrieve a fresh token. This is done automatically, so you don't have to worry about it. Just store the hash in a session, feed it back in on each request and you're good to go.
+
+Here is a simple Sinatra example implementing the OAuth2 flow with Geoloqi:
+
+	require 'rubygems'
+	require 'sinatra'
+	require 'geoloqi'
+
+	GEOLOQI_REDIRECT_URI = 'http://yourwebsite.net'
+
+	enable :sessions
+
+	def geoloqi
+	  @geoloqi ||= Geoloqi::Session.new :auth => session[:geoloqi_auth],
+	                                    :refresh_token => session[:refresh_token],
+	                                    :config => {:client_id => 'YOUR OAUTH CLIENT ID',
+	                                                :client_secret => 'YOUR CLIENT SECRET'}
+	end
+
+	get '/?' do
+	  session[:geoloqi_auth] = geoloqi.get_auth(params[:code], GEOLOQI_REDIRECT_URI) if params[:code] && !geoloqi.access_token?
+	  redirect geoloqi.authorize_url(GEOLOQI_REDIRECT_URI) unless geoloqi.access_token?
+	  username = geoloqi.get('account/username')['username']
+	  "You have successfully logged in as #{username}!"
+	end

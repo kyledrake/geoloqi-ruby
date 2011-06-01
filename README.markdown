@@ -62,7 +62,6 @@ Here is a simple Sinatra example implementing the OAuth2 flow with Geoloqi:
 
 	def geoloqi
 	  @geoloqi ||= Geoloqi::Session.new :auth => session[:geoloqi_auth],
-	                                    :refresh_token => session[:refresh_token],
 	                                    :config => {:client_id => 'YOUR OAUTH CLIENT ID',
 	                                                :client_secret => 'YOUR CLIENT SECRET'}
 	end

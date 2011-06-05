@@ -100,3 +100,12 @@ Now, here's a power example: Uses [sinatra-synchrony](http://github.com/kyledrak
 	  username = geoloqi.get('account/username')['username']
 	  "You have successfully logged in as #{username}!"
 	end
+
+Found a bug?
+---
+Let us know! Send a pull request or a patch. Questions? Ask! We're here to help.
+
+Authors
+---
+Kyle Drake - kyle [] geoloqi dot com
+Aaron Parecki - aaron [] geoloqi dot com

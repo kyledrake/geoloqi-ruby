@@ -103,7 +103,7 @@ Now, here's a power example: Uses [sinatra-synchrony](http://github.com/kyledrak
 
 Found a bug?
 ---
-Let us know! Send a pull request or a patch. Questions? Ask! We're here to help.
+Let us know! Send a pull request or a patch. Questions? Ask! We're here to help. File issues, we'll respond to them!
 
 Authors
 ---

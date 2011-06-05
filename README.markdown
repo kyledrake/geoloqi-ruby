@@ -72,3 +72,31 @@ Here is a simple Sinatra example implementing the OAuth2 flow with Geoloqi:
 	  username = geoloqi.get('account/username')['username']
 	  "You have successfully logged in as #{username}!"
 	end
+
+Now, here's a power example: Uses [sinatra-synchrony](http://github.com/kyledrake/sinatra-synchrony) to provide a massive concurrency improvement via EventMachine. This will allow your app to serve other requests, the app will not hang while waiting for content from the Geoloqi API. Works on anything that supports Thin (Rack, EY, Heroku, etc):
+
+	# To install deps: gem install sinatra sinatra-synchrony geoloqi
+	# To run from command line: ruby sinatra_synchrony.rb -s thin
+	require 'rubygems'
+	require 'sinatra'
+	require 'sinatra/synchrony'
+	require 'geoloqi'
+
+	GEOLOQI_REDIRECT_URI = 'http://example.com'
+
+	enable :sessions
+
+	configure do
+	  Geoloqi.config :client_id => 'YOUR OAUTH CLIENT ID', :client_secret => 'YOUR CLIENT SECRET', :adapter => :em_synchrony
+	end
+
+	def geoloqi
+	  @geoloqi ||= Geoloqi::Session.new :auth => session[:geoloqi_auth]
+	end
+
+	get '/?' do
+	  session[:geoloqi_auth] = geoloqi.get_auth(params[:code], GEOLOQI_REDIRECT_URI) if params[:code] && !geoloqi.access_token?
+	  redirect geoloqi.authorize_url(GEOLOQI_REDIRECT_URI) unless geoloqi.access_token?
+	  username = geoloqi.get('account/username')['username']
+	  "You have successfully logged in as #{username}!"
+	end

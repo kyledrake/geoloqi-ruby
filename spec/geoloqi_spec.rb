@@ -120,10 +120,9 @@ describe Geoloqi::Session do
     before do
       @session = Geoloqi::Session.new :access_token => 'hey brah whats up let me in its cool 8)'
     end
-    
+
     it 'fails with an exception' do
-      res = @session.get 'message/send'
-      puts res.inspect
+      expect { rescuing { @session.get 'message/send' }.message == 'invalid_token' }
     end
   end
 

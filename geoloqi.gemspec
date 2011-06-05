@@ -1,6 +1,7 @@
+require './lib/geoloqi/version.rb'
 Gem::Specification.new do |s|
   s.name = 'geoloqi'
-  s.version = '0.0.1'
+  s.version = Geoloqi::VERSION
   s.authors = ['Kyle Drake', 'Aaron Parecki']
   s.email = ['kyledrake@gmail.com', 'aaron@parecki.com']
   s.homepage = 'https://github.com/kyledrake/geoloqi-ruby'
@@ -20,4 +21,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'minitest'
   s.add_development_dependency 'em-http-request'
   s.add_development_dependency 'em-synchrony'
+  s.add_development_dependency 'webmock'
 end

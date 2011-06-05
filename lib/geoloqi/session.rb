@@ -8,6 +8,7 @@ module Geoloqi
       @config = opts[:config] || (Geoloqi.config || Geoloqi::Config.new)
       self.auth = opts[:auth] || {}
       self.auth[:access_token] = opts[:access_token] if opts[:access_token]
+
       @connection = Faraday.new(:url => API_URL) do |builder|
         builder.response :logger if @config.enable_logging
         builder.adapter  @config.adapter || :net_http
@@ -42,7 +43,7 @@ module Geoloqi
       body = body.to_json if body.is_a? Hash
 
       response = @connection.send(meth) do |req|
-        req.url "/#{VERSION.to_s}/#{path.gsub(/^\//, '')}"
+        req.url "/#{API_VERSION.to_s}/#{path.gsub(/^\//, '')}"
         req.headers = headers
         req.body = body if body
       end
@@ -61,15 +62,25 @@ module Geoloqi
               :redirect_uri => redirect_uri}
 
       response = @connection.post do |req|
-        req.url "/#{VERSION.to_s}/oauth/token"
-        req.headers['Content-Type'] = 'application/json'
+        req.url "/#{API_VERSION.to_s}/oauth/token"
+        req.headers = headers false
         req.body = args.to_json
       end
+
+      auth = JSON.parse response.body
+
+      # expires_at is likely incorrect. I'm chopping 5 seconds
+      # off to allow for a more graceful failover.
+      auth['expires_at'] = (Time.now + @expires_in.to_i)-5
+
       self.auth = JSON.parse response.body
+      self.auth
     end
 
-    def headers
-      {'Authorization' => "OAuth #{access_token}", 'Content-Type' => 'application/json'}
+    def headers(with_oauth=true)
+      headers = {'Content-Type' => 'application/json', 'User-Agent' => "geoloqi-ruby #{Geoloqi::VERSION}", 'Accept' => 'application/json'}
+      headers['Authorization'] = "OAuth #{access_token}" if with_oauth
+      headers
     end
   end
 end

@@ -1,9 +1,10 @@
 raise ArgumentError, 'usage: be ruby spec/geoloqi_spec.rb "client_id" "client_secret" "access_token"' unless ARGV.length == 3
 Bundler.setup
-require 'geoloqi'
+require './lib/geoloqi.rb'
 require 'minitest/autorun'
 require 'wrong'
 require 'wrong/adapters/minitest'
+require 'webmock'
 
 Wrong.config.alias_assert :expect
 
@@ -113,4 +114,36 @@ describe Geoloqi::Session do
                                 "redirect_uri=#{Rack::Utils.escape 'http://blah.blah/test'}" }
     end
   end
+
+  describe 'with auth' do
+    before do
+      @session = Geoloqi::Session.new :config => {:client_id => ARGV[0], :client_secret => ARGV[1]}
+    end
+
+    it 'retreives auth with mock' do
+      WebMock.disable_net_connect!
+      begin
+        expect { @session.get_auth('1234', 'http://test.site/') == {:access_token => 'access_token1234',
+                                                                    :scope => nil,
+                                                                    :expires_in => '86400',
+                                                                    :refresh_token => 'refresh_token1234'} }
+      ensure
+        WebMock.allow_net_connect!
+      end
+    end
+  end
 end
+
+include WebMock::API
+
+stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
+  with(:body => {:client_id => ARGV[0],
+                                   :client_secret => ARGV[1],
+                                   :code => "1234",
+                                   :grant_type => "authorization_code",
+                                   :redirect_uri => "http://test.site/"}.to_json).
+  to_return(:status => 200,
+            :body => {:access_token => 'access_token1234',
+                      :scope => nil,
+                      :expires_in => '86400',
+                      :refresh_token => 'refresh_token1234'}.to_json)

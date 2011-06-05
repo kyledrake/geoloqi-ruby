@@ -40,17 +40,54 @@ module Geoloqi
     end
 
     def run(meth, path, body=nil)
-      body = body.to_json if body.is_a? Hash
+      renew_access_token! if auth[:expires_at] && auth[:expires_at] <= Time.now
 
-      response = @connection.send(meth) do |req|
-        req.url "/#{API_VERSION.to_s}/#{path.gsub(/^\//, '')}"
-        req.headers = headers
-        req.body = body if body
+      body = body.to_json if body.is_a? Hash
+      
+      retry_attempt = 0
+      begin
+        response = @connection.send(meth) do |req|
+          req.url "/#{API_VERSION.to_s}/#{path.gsub(/^\//, '')}"
+          req.headers = headers
+          req.body = body if body
+        end
+
+        json = JSON.parse response.body
+        raise ApiError.new(json['error'], json['error_description']) if json.is_a?(Hash) && json['error']
+      rescue Geoloqi::ApiError
+        raise Error.new('Unable to procure fresh access token from API on second attempt') if retry_attempt > 0
+        if json['error'] == 'expired_token'
+          retry_attempt += 1
+          retry
+        else
+          fail
+        end
+      end
+      json
+    end
+
+    # TODO: DRY and refactor
+    def renew_access_token!
+      require 'client_id and client_secret are required to get access token' unless @config.client_id? && @config.client_secret?
+      args = {:client_id => @config.client_id,
+              :client_secret => @config.client_secret,
+              :grant_type => 'refresh_token',
+              :refresh_token => auth[:refresh_token]}
+
+      response = @connection.post do |req|
+        req.url "/#{API_VERSION.to_s}/oauth/token"
+        req.headers = headers false
+        req.body = args.to_json
       end
 
-      json = JSON.parse response.body
-      raise Error.new(json['error'], json['error_description']) if json.is_a?(Hash) && json['error']
-      json
+      auth = JSON.parse response.body
+
+      # expires_at is likely incorrect. I'm chopping 5 seconds
+      # off to allow for a more graceful failover.
+      auth['expires_at'] = (Time.now + @expires_in.to_i)-5
+
+      self.auth = JSON.parse response.body
+      self.auth
     end
 
     def get_auth(code, redirect_uri)

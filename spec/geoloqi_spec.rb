@@ -12,6 +12,8 @@ describe Geoloqi do
   it 'reads geoloqi config' do
     Geoloqi.config :client_id => 'client_id', :client_secret => 'client_secret'
     expect { Geoloqi.config.is_a?(Geoloqi::Config) }
+    expect { Geoloqi.config.client_id == 'client_id' }
+    expect { Geoloqi.config.client_secret == 'client_secret' }
   end
 
   it 'returns authorize url' do
@@ -38,7 +40,6 @@ describe Geoloqi::Config do
 end
 
 describe Geoloqi::Session do
-
   describe 'with nothing passed' do
     before do
       @session = Geoloqi::Session.new
@@ -115,21 +116,54 @@ describe Geoloqi::Session do
     end
   end
 
-  describe 'with auth' do
+  describe 'with bunk access token' do
+    before do
+      @session = Geoloqi::Session.new :access_token => 'hey brah whats up let me in its cool 8)'
+    end
+    
+    it 'fails with an exception' do
+      res = @session.get 'message/send'
+      puts res.inspect
+    end
+  end
+
+  describe 'with config' do
     before do
       @session = Geoloqi::Session.new :config => {:client_id => ARGV[0], :client_secret => ARGV[1]}
     end
 
-    it 'retreives auth with mock' do
+    it 'retrieves auth with mock' do
       WebMock.disable_net_connect!
       begin
-        expect { @session.get_auth('1234', 'http://test.site/') == {:access_token => 'access_token1234',
-                                                                    :scope => nil,
-                                                                    :expires_in => '86400',
-                                                                    :refresh_token => 'refresh_token1234'} }
+        response = @session.get_auth('1234', 'http://test.site/')
       ensure
         WebMock.allow_net_connect!
       end
+      expect { response == {:access_token => 'access_token1234',
+                            :scope => nil,
+                            :expires_in => '86400',
+                            :refresh_token => 'refresh_token1234'} }
+    end
+  end
+  
+  describe 'with config and expired auth' do
+    before do
+      @session = Geoloqi::Session.new :config => {:client_id => ARGV[0], :client_secret => ARGV[1]},
+                                      :auth => { :access_token => 'access_token1234',
+                                                 :scope => nil,
+                                                 :expires_in => '86400',
+                                                 :expires_at => Time.at(0),
+                                                 :refresh_token => 'refresh_token1234' }
+    end
+    
+    it 'retrieves new access token and retries query if expired' do
+      WebMock.disable_net_connect!
+      begin
+        @session.get('account/username')
+      ensure
+        WebMock.allow_net_connect!
+      end
+      expect { @session.auth[:access_token] == 'access_token4567' }
     end
   end
 end
@@ -138,12 +172,28 @@ include WebMock::API
 
 stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
   with(:body => {:client_id => ARGV[0],
-                                   :client_secret => ARGV[1],
-                                   :code => "1234",
-                                   :grant_type => "authorization_code",
-                                   :redirect_uri => "http://test.site/"}.to_json).
+                 :client_secret => ARGV[1],
+                 :code => "1234",
+                 :grant_type => "authorization_code",
+                 :redirect_uri => "http://test.site/"}.to_json).
   to_return(:status => 200,
             :body => {:access_token => 'access_token1234',
                       :scope => nil,
                       :expires_in => '86400',
                       :refresh_token => 'refresh_token1234'}.to_json)
+
+stub_request(:post, "https://api.geoloqi.com/1/oauth/token").
+  with(:body => {:client_id => ARGV[0],
+                 :client_secret => ARGV[1],
+                 :grant_type => "refresh_token",
+                 :refresh_token => "refresh_token1234"}.to_json).
+  to_return(:status => 200,
+            :body => {:access_token => 'access_token4567',
+                      :scope => nil,
+                      :expires_in => '5000',
+                      :refresh_token => 'refresh_token4567'}.to_json)
+
+stub_request(:get, "https://api.geoloqi.com/1/account/username").
+  with(:headers => {'Authorization'=>'OAuth access_token4567'}).
+  to_return(:status => 200,
+            :body => {'username' => 'pikachu4lyfe'}.to_json)

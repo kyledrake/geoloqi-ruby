@@ -107,5 +107,5 @@ Let us know! Send a pull request or a patch. Questions? Ask! We're here to help.
 
 Authors
 ---
-Kyle Drake - kyle geoloqi dot com
-Aaron Parecki - aaron geoloqi dot com
+* Kyle Drake
+* Aaron Parecki

@@ -44,7 +44,7 @@ describe Geoloqi::Session do
   before do
     WebMock.allow_net_connect!
   end
-  
+
   describe 'with nothing passed' do
     before do
       @session = Geoloqi::Session.new
@@ -60,13 +60,17 @@ describe Geoloqi::Session do
       @session = Geoloqi::Session.new :access_token => ARGV[2]
     end
 
+    it 'successfully makes mock call with array' do
+      expect { @session.post('play_record_at_geoloqi_hq', [{:artist => 'Television'}])['result'] == 'ok' }
+    end
+
     it 'successfully makes call to api with forward slash' do
       response = @session.get '/layer/info/Gx'
       expect { response['layer_id'] == 'Gx' }
     end
 
     it 'successfully makes call to api without forward slash' do
-      response = @session.get '/layer/info/Gx'
+      response = @session.get 'layer/info/Gx'
       expect { response['layer_id'] == 'Gx' }
     end
 
@@ -157,7 +161,7 @@ describe Geoloqi::Session do
                             :refresh_token => 'refresh_token1234'} }
     end
   end
-  
+
   describe 'with config and expired auth' do
     before do
       @session = Geoloqi::Session.new :config => {:client_id => ARGV[0], :client_secret => ARGV[1]},
@@ -167,7 +171,7 @@ describe Geoloqi::Session do
                                                  :expires_at => Time.at(0),
                                                  :refresh_token => 'refresh_token1234' }
     end
-    
+
     it 'retrieves new access token and retries query if expired' do
       WebMock.disable_net_connect!
       begin
@@ -209,3 +213,9 @@ stub_request(:get, "https://api.geoloqi.com/1/account/username").
   with(:headers => {'Authorization'=>'OAuth access_token4567'}).
   to_return(:status => 200,
             :body => {'username' => 'pikachu4lyfe'}.to_json)
+
+# This is not a real API call, we're using it to test that arrays are JSON encoded.
+stub_request(:post, "https://api.geoloqi.com/1/play_record_at_geoloqi_hq").
+  with(:body => [{:artist => 'Television'}].to_json).
+  to_return(:status => 200,
+            :body => {'result' => 'ok'}.to_json)

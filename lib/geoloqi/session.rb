@@ -42,7 +42,7 @@ module Geoloqi
     def run(meth, path, body=nil)
       renew_access_token! if auth[:expires_at] && auth[:expires_at] <= Time.now
 
-      body = body.to_json if body.is_a? Hash
+      body = body.to_json if [Hash, Array].include? body.class
 
       retry_attempt = 0
       begin

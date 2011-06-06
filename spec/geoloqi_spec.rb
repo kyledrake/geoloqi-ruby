@@ -1,5 +1,6 @@
 raise ArgumentError, 'usage: be ruby spec/geoloqi_spec.rb "client_id" "client_secret" "access_token"' unless ARGV.length == 3
-Bundler.setup
+# Bundler.setup
+require 'rubygems'
 require './lib/geoloqi.rb'
 require 'minitest/autorun'
 require 'wrong'
@@ -40,6 +41,10 @@ describe Geoloqi::Config do
 end
 
 describe Geoloqi::Session do
+  before do
+    WebMock.allow_net_connect!
+  end
+  
   describe 'with nothing passed' do
     before do
       @session = Geoloqi::Session.new
@@ -86,11 +91,19 @@ describe Geoloqi::Session do
     end
   end
 
-  describe 'with em synchrony adapter and access token' do
-    it 'makes call to api' do
-      session = Geoloqi::Session.new :access_token => ARGV[2], :config => {:adapter => :em_synchrony}
-      response = session.get 'layer/info/Gx'
-      expect { response['layer_id'] == 'Gx' }
+  # Ruby 1.9 only!
+  if RUBY_VERSION[0..2].to_f >= 1.9
+    begin
+      require 'em-synchrony'
+    rescue LoadError
+      puts 'NOTE: You need the em-synchrony gem for all tests to pass: gem install em-synchrony'
+    end
+    describe 'with em synchrony adapter and access token' do
+      it 'makes call to api' do
+        session = Geoloqi::Session.new :access_token => ARGV[2], :config => {:adapter => :em_synchrony}
+        response = session.get 'layer/info/Gx'
+        expect { response['layer_id'] == 'Gx' }
+      end
     end
   end
 

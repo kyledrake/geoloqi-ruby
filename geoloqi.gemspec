@@ -18,8 +18,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'faraday'
 
   s.add_development_dependency 'wrong', '= 0.5.0'
-  s.add_development_dependency 'minitest'
-  s.add_development_dependency 'em-http-request'
-  s.add_development_dependency 'em-synchrony'
-  s.add_development_dependency 'webmock'
+  s.add_development_dependency 'minitest', '= 2.2.2'
+  s.add_development_dependency 'webmock', '= 1.6.4'
 end

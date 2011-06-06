@@ -43,7 +43,7 @@ module Geoloqi
       renew_access_token! if auth[:expires_at] && auth[:expires_at] <= Time.now
 
       body = body.to_json if body.is_a? Hash
-      
+
       retry_attempt = 0
       begin
         response = @connection.send(meth) do |req|

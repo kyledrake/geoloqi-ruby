@@ -45,6 +45,12 @@ This returns response['place_id'], which you can use to store and/or remove the 
 
 Which returns response['result'] with a value of "ok".
 
+You can send query string parameters with get requests too:
+
+	geoloqi.get 'location/history', :count => 2
+	# or
+	geoloqi.get 'location/history?count=2'
+
 Implementing OAuth2
 ---
 

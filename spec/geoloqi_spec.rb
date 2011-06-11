@@ -65,13 +65,11 @@ describe Geoloqi::Session do
     end
 
     it 'successfully makes call to api with forward slash' do
-      response = @session.get '/layer/info/Gx'
-      expect { response['layer_id'] == 'Gx' }
+      expect { @session.get('/layer/info/Gx')['layer_id'] == 'Gx' }
     end
 
     it 'successfully makes call to api without forward slash' do
-      response = @session.get 'layer/info/Gx'
-      expect { response['layer_id'] == 'Gx' }
+      expect { @session.get('layer/info/Gx')['layer_id'] == 'Gx' }
     end
 
     it 'creates a layer, reads its info, and then deletes the layer' do
@@ -83,6 +81,18 @@ describe Geoloqi::Session do
       expect { !layer_id.empty? }
       expect { layer_info['name'] == 'Test Layer' }
       expect { layer_delete['result'] == 'ok' }
+    end
+
+    it 'makes a location/history call with get and hash params' do
+      expect { @session.get('location/history', :count => 2)['points'].count == 2 }
+    end
+    
+    it 'makes a location/history call with get and query string directly in path' do
+      expect { @session.get('location/history?count=2')['points'].count == 2 }
+    end
+    
+    it 'makes a location/history call with get and query string params' do
+      expect { @session.get('location/history', 'count=2')['points'].count == 2 }
     end
   end
 

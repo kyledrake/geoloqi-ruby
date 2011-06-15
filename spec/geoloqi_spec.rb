@@ -27,6 +27,17 @@ describe Geoloqi do
 end
 
 describe Geoloqi::Config do
+  describe 'with redirect_uri' do
+    it 'returns authorize url' do
+      Geoloqi.config :client_id => ARGV[0], :client_secret => ARGV[1], :redirect_uri => 'http://blah.blah/test'
+      authorize_url = Geoloqi.authorize_url 'test'
+      expect { authorize_url == "#{Geoloqi::OAUTH_URL}?"+
+                                'response_type=code&'+
+                                "client_id=#{Rack::Utils.escape 'test'}&"+
+                                "redirect_uri=#{Rack::Utils.escape 'http://blah.blah/test'}" }
+    end
+  end
+
   it 'throws exception if non-boolean value is fed to logging' do
     expect { rescuing { Geoloqi.config(:client_id => '', :client_secret => '', :enable_logging => :cats )}.class == ArgumentError }
   end

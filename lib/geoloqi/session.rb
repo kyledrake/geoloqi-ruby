@@ -27,7 +27,7 @@ module Geoloqi
       !access_token.nil?
     end
 
-    def authorize_url(redirect_uri)
+    def authorize_url(redirect_uri=@config.redirect_uri)
       Geoloqi.authorize_url @config.client_id, redirect_uri
     end
 
@@ -90,7 +90,7 @@ module Geoloqi
       self.auth
     end
 
-    def get_auth(code, redirect_uri)
+    def get_auth(code, redirect_uri=@config.redirect_uri)
       require 'client_id and client_secret are required to get access token' unless @config.client_id? && @config.client_secret?
       args = {:client_id => @config.client_id,
               :client_secret => @config.client_secret,
@@ -115,7 +115,7 @@ module Geoloqi
     end
 
     def headers(with_oauth=true)
-      headers = {'Content-Type' => 'application/json', 'User-Agent' => "geoloqi-ruby #{Geoloqi::VERSION}", 'Accept' => 'application/json'}
+      headers = {'Content-Type' => 'application/json', 'User-Agent' => "geoloqi-ruby #{Geoloqi.version}", 'Accept' => 'application/json'}
       headers['Authorization'] = "OAuth #{access_token}" if with_oauth
       headers
     end

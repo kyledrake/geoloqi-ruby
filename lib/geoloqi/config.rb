@@ -1,6 +1,6 @@
 module Geoloqi
   class Config
-    attr_accessor :client_id, :client_secret, :adapter, :enable_logging
+    attr_accessor :client_id, :client_secret, :adapter, :enable_logging, :redirect_uri
     def initialize(opts={})
       opts.each {|k,v| send("#{k}=", v)}
       self.enable_logging ||= false

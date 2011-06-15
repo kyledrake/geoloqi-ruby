@@ -1,7 +1,7 @@
 require './lib/geoloqi/version.rb'
 Gem::Specification.new do |s|
   s.name = 'geoloqi'
-  s.version = Geoloqi::VERSION
+  s.version = Geoloqi.version
   s.authors = ['Kyle Drake', 'Aaron Parecki']
   s.email = ['kyledrake@gmail.com', 'aaron@parecki.com']
   s.homepage = 'https://github.com/kyledrake/geoloqi-ruby'

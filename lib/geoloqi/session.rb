@@ -31,25 +31,26 @@ module Geoloqi
       Geoloqi.authorize_url @config.client_id, redirect_uri
     end
 
-    def get(path)
-      run :get, path
+    def get(path, query=nil)
+      run :get, path, query
     end
 
-    def post(path, body=nil)
-      run :post, path, body
+    def post(path, query=nil)
+      run :post, path, query
     end
 
-    def run(meth, path, body=nil)
+    def run(meth, path, query=nil)
+      query = Rack::Utils.parse_query query if query.is_a?(String)
       renew_access_token! if auth[:expires_at] && auth[:expires_at] <= Time.now
-
-      body = body.to_json if [Hash, Array].include? body.class
-
       retry_attempt = 0
       begin
         response = @connection.send(meth) do |req|
           req.url "/#{API_VERSION.to_s}/#{path.gsub(/^\//, '')}"
           req.headers = headers
-          req.body = body if body
+
+          if query
+            meth == :get ? req.params = query : req.body = query.to_json
+          end
         end
 
         json = JSON.parse response.body

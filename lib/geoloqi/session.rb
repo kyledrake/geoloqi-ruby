@@ -58,6 +58,7 @@ module Geoloqi
       rescue Geoloqi::ApiError
         raise Error.new('Unable to procure fresh access token from API on second attempt') if retry_attempt > 0
         if json['error'] == 'expired_token'
+          renew_access_token!
           retry_attempt += 1
           retry
         else

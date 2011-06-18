@@ -65,13 +65,20 @@ Here is a simple Sinatra example implementing the OAuth2 flow with Geoloqi:
 	GEOLOQI_REDIRECT_URI = 'http://yourwebsite.net'
 
 	enable :sessions
+	set :session_secret, 'PUT A SECRET WORD HERE' # Encrypts the cookie session.. recommended.
 
 	def geoloqi
 	  @geoloqi ||= Geoloqi::Session.new :auth => session[:geoloqi_auth],
 	                                    :config => {:client_id => 'YOUR OAUTH CLIENT ID',
 	                                                :client_secret => 'YOUR CLIENT SECRET'}
 	end
-
+	
+	# If the access token expires, Geoloqi::Session will refresh inline!
+	# This after block makes sure the session gets the updated config.
+	after do
+	  session[:geoloqi_auth] = @geoloqi.auth
+	end
+  
 	get '/?' do
 	  session[:geoloqi_auth] = geoloqi.get_auth(params[:code], GEOLOQI_REDIRECT_URI) if params[:code] && !geoloqi.access_token?
 	  redirect geoloqi.authorize_url(GEOLOQI_REDIRECT_URI) unless geoloqi.access_token?
@@ -91,6 +98,7 @@ Now, here's a power example: Uses [sinatra-synchrony](http://github.com/kyledrak
 	GEOLOQI_REDIRECT_URI = 'http://example.com'
 
 	enable :sessions
+	set :session_secret, 'PUT A SECRET WORD HERE'
 
 	configure do
 	  Geoloqi.config :client_id => 'YOUR OAUTH CLIENT ID', :client_secret => 'YOUR CLIENT SECRET', :adapter => :em_synchrony
@@ -98,6 +106,10 @@ Now, here's a power example: Uses [sinatra-synchrony](http://github.com/kyledrak
 
 	def geoloqi
 	  @geoloqi ||= Geoloqi::Session.new :auth => session[:geoloqi_auth]
+	end
+	
+	after do
+	  session[:geoloqi_auth] = @geoloqi.auth
 	end
 
 	get '/?' do
@@ -115,3 +127,10 @@ Authors
 ---
 * Kyle Drake
 * Aaron Parecki
+
+TODO / Possible projects
+---
+* Plugin for Sinatra
+* Rails plugin (works fine as-is, but maybe we can make it easier?)
+* More Concrete API in addition to the simple one?
+* Hashie::Mash and/or SymbolTable support out of the box
